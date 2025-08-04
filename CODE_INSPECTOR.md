@@ -2,7 +2,7 @@
 
 ## 功能介绍
 
-Fast Bearer 扩展已集成 code-inspector-plugin，让您能够：
+WhatsMyToken 扩展已集成 code-inspector-plugin，让您能够：
 - 点击扩展界面上的任何元素
 - 自动在代码编辑器中打开对应的源代码文件
 - 光标会自动定位到该元素的具体代码位置

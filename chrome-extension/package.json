@@ -1,7 +1,7 @@
 {
 	"name": "chrome-extension",
 	"version": "1.0.0",
-	"description": "Fast Bearer - core extension settings",
+	"description": "WhatsMyToken - core extension settings",
 	"type": "module",
 	"private": true,
 	"sideEffects": false,

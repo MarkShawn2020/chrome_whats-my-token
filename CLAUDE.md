@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Fast-bearer is a Chrome/Firefox extension that captures Bearer tokens from network requests. Built with React 19, TypeScript 5, Vite 6, and Turborepo, it intercepts HTTP requests containing Bearer authentication tokens and displays them in an organized interface.
+WhatsMyToken is a Chrome/Firefox extension that captures authentication tokens from network requests. Built with React 19, TypeScript 5, Vite 6, and Turborepo, it intercepts HTTP requests containing Bearer authentication tokens and displays them in an organized interface.
 
 ## Essential Commands
 
@@ -114,7 +114,7 @@ The project uses Turborepo and pnpm workspaces for managing multiple packages:
 - **Firefox Support**: Separate build process and manifest adjustments for Firefox compatibility
 - **Windows Development**: Requires WSL and should run `pnpm dev` as administrator
 
-### Fast-bearer Specific Features
+### WhatsMyToken Specific Features
 
 #### Bearer Token Capture
 - **Background Service Worker**: Intercepts network requests using `chrome.webRequest` API

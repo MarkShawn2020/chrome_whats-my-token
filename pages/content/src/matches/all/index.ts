@@ -1,4 +1,4 @@
-console.log("[Fast Bearer] Content script loaded");
+console.log("[WhatsMyToken] Content script loaded");
 
 // Inject a script into the page context to intercept fetch and XMLHttpRequest
 const script = document.createElement("script");
@@ -40,7 +40,7 @@ script.textContent = `
     const token = extractBearerToken(options.headers);
     if (token) {
       window.postMessage({
-        type: 'FAST_BEARER_TOKEN_CAPTURED',
+        type: 'WHATSMYTOKEN_TOKEN_CAPTURED',
         data: {
           token,
           url: url.toString(),
@@ -59,24 +59,24 @@ script.textContent = `
   const originalXHRSend = XMLHttpRequest.prototype.send;
   
   XMLHttpRequest.prototype.open = function(method, url, ...args) {
-    this._fastBearerMethod = method;
-    this._fastBearerUrl = url;
-    this._fastBearerHeaders = {};
+    this._whatsMyTokenMethod = method;
+    this._whatsMyTokenUrl = url;
+    this._whatsMyTokenHeaders = {};
     return originalXHROpen.apply(this, [method, url, ...args]);
   };
   
   XMLHttpRequest.prototype.setRequestHeader = function(name, value) {
-    this._fastBearerHeaders[name] = value;
+    this._whatsMyTokenHeaders[name] = value;
     
     if (name.toLowerCase() === 'authorization' && value) {
       const match = value.match(/^Bearer\\s+(.+)$/i);
       if (match && match[1]) {
         window.postMessage({
-          type: 'FAST_BEARER_TOKEN_CAPTURED',
+          type: 'WHATSMYTOKEN_TOKEN_CAPTURED',
           data: {
             token: match[1],
-            url: this._fastBearerUrl,
-            method: this._fastBearerMethod,
+            url: this._whatsMyTokenUrl,
+            method: this._whatsMyTokenMethod,
             source: 'xhr'
           }
         }, '*');
@@ -90,7 +90,7 @@ script.textContent = `
     return originalXHRSend.apply(this, args);
   };
   
-  console.log('[Fast Bearer] Interceptors installed');
+  console.log('[WhatsMyToken] Interceptors installed');
 })();
 `;
 
@@ -101,7 +101,7 @@ script.remove();
 // Listen for messages from the injected script
 window.addEventListener("message", async (event) => {
 	if (event.source !== window) return;
-	if (event.data.type !== "FAST_BEARER_TOKEN_CAPTURED") return;
+	if (event.data.type !== "WHATSMYTOKEN_TOKEN_CAPTURED") return;
 
 	// Send to background script
 	chrome.runtime.sendMessage({

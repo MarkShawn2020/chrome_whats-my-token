@@ -4,7 +4,7 @@ import { bearerTokenStorage } from "@extension/storage";
 
 // Keep service worker active
 chrome.runtime.onInstalled.addListener(() => {
-	console.log("Fast Bearer extension installed");
+	console.log("WhatsMyToken extension installed");
 });
 
 // Prevent service worker from going idle
@@ -89,4 +89,4 @@ chrome.runtime.onMessage.addListener(async (message, sender) => {
 	}
 });
 
-console.log("Fast Bearer background service loaded");
+console.log("WhatsMyToken background service loaded");

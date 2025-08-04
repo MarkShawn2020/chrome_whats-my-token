@@ -186,7 +186,7 @@ const PopupOptimized = () => {
 						isLight ? "text-gray-900" : "text-gray-100",
 					)}
 				>
-					Fast Bearer
+					WhatsMyToken
 				</h1>
 				<p
 					className={cn(
@@ -194,7 +194,7 @@ const PopupOptimized = () => {
 						isLight ? "text-gray-600" : "text-gray-400",
 					)}
 				>
-					Captured Bearer tokens from network requests
+					Captured authentication tokens from network requests
 				</p>
 
 				<div className="mb-4 space-y-3">
@@ -289,7 +289,7 @@ const PopupOptimized = () => {
 					>
 						<p>No tokens captured yet.</p>
 						<p className="mt-2 text-sm">
-							Browse websites that use Bearer authentication.
+							Browse websites that use token-based authentication.
 						</p>
 					</div>
 				) : filteredTokens.length === 0 ? (
@@ -418,7 +418,7 @@ const PopupOptimized = () => {
 					>
 						<p>No tokens captured yet.</p>
 						<p className="mt-2 text-sm">
-							Browse websites that use Bearer authentication.
+							Browse websites that use token-based authentication.
 						</p>
 					</div>
 				) : Object.entries(groupedByToken).length === 0 ? (

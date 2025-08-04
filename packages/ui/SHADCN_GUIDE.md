@@ -1,6 +1,6 @@
-# Using shadcn/ui in Fast Bearer Extension
+# Using shadcn/ui in WhatsMyToken Extension
 
-This guide explains how to use shadcn/ui components in the Fast Bearer Chrome extension.
+This guide explains how to use shadcn/ui components in the WhatsMyToken browser extension.
 
 ## Setup Complete ✅
 

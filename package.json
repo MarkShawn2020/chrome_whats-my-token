@@ -1,7 +1,7 @@
 {
-	"name": "fast-bearer",
+	"name": "whatsmytoken",
 	"version": "1.0.0",
-	"description": "Chrome extension to capture and manage Bearer tokens from network requests",
+	"description": "Browser extension to capture and inspect authentication tokens from network requests",
 	"license": "MIT",
 	"private": true,
 	"sideEffects": false,

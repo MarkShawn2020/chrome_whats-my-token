@@ -1,11 +1,11 @@
 {
 	"extensionDescription": {
 		"description": "Extension description",
-		"message": "Capture and manage Bearer tokens from network requests"
+		"message": "Inspect and manage authentication tokens from network requests"
 	},
 	"extensionName": {
 		"description": "Extension name",
-		"message": "Fast Bearer"
+		"message": "WhatsMyToken"
 	},
 	"toggleTheme": {
 		"message": "Toggle theme"
