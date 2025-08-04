@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Fast-bearer is a Chrome/Firefox extension boilerplate built with React 19, TypeScript 5, Vite 6, and Turborepo. It provides a modern development experience with hot module reloading and support for both browsers.
+Fast-bearer is a Chrome/Firefox extension that captures Bearer tokens from network requests. Built with React 19, TypeScript 5, Vite 6, and Turborepo, it intercepts HTTP requests containing Bearer authentication tokens and displays them in an organized interface.
 
 ## Essential Commands
 
@@ -113,3 +113,26 @@ The project uses Turborepo and pnpm workspaces for managing multiple packages:
 - **Permissions**: Default configuration includes broad permissions - limit these for production
 - **Firefox Support**: Separate build process and manifest adjustments for Firefox compatibility
 - **Windows Development**: Requires WSL and should run `pnpm dev` as administrator
+
+### Fast-bearer Specific Features
+
+#### Bearer Token Capture
+- **Background Service Worker**: Intercepts network requests using `chrome.webRequest` API
+- **Token Storage**: Uses Chrome Storage API with deduplication logic
+- **Keep-alive Mechanism**: Chrome alarms API prevents service worker idle state
+
+#### UI Components
+- **Popup**: Optimized React component with direct storage access (no Suspense)
+- **Token Display**: Shows captured tokens with domain, timestamp, and copy functionality
+- **shadcn/ui Integration**: Modern UI components with Tailwind CSS theming
+
+#### Known Limitations
+- **Code Inspector**: Cannot work in Chrome extension popups due to CSP restrictions
+- **Performance**: Popup uses direct storage access to avoid loading delays
+
+### Recent Configuration Changes
+
+1. **ESLint**: Relaxed rules for easier development
+2. **TypeScript**: Disabled strict mode checks
+3. **shadcn/ui**: Manually integrated with custom CSS variable theming
+4. **Content Scripts**: CSS imports removed to fix build errors
