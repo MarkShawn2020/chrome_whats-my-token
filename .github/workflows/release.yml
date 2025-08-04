@@ -30,7 +30,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build dependencies
-        run: pnpm turbo ready
+        run: pnpm turbo ready --filter='!@extension/content-runtime-script'
 
       - name: Lint
         run: pnpm lint
