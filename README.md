@@ -171,4 +171,4 @@ MIT License - see LICENSE file for details
 
 ## Acknowledgments
 
-Built on top of the excellent [chrome-extension-boilerplate-react-vite](https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite) by Jonghakseo.
+Built on top of the excellent [chrome-extension-boilerplate-react-vite](https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite) by Jonghakseo. 
