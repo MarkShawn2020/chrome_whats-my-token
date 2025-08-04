@@ -72,14 +72,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get the next version without releasing
-          NEXT_VERSION=$(pnpm exec semantic-release --dry-run | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+' || echo "")
+          # Configure git to use the correct repository
+          git remote set-url origin https://github.com/MarkShawn2020/chrome_whats-my-token.git
+          
+          # Run semantic-release in dry-run mode and capture output
+          OUTPUT=$(pnpm exec semantic-release --dry-run --ci false 2>&1 || true)
+          echo "$OUTPUT"
+          
+          # Extract version from output
+          NEXT_VERSION=$(echo "$OUTPUT" | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+' || echo "")
           
           if [ -z "$NEXT_VERSION" ]; then
-            echo "No release needed"
+            echo "::notice::No release needed based on commits"
             echo "should_release=false" >> $GITHUB_OUTPUT
           else
-            echo "Next version will be: $NEXT_VERSION"
+            echo "::notice::Next version will be: $NEXT_VERSION"
             echo "should_release=true" >> $GITHUB_OUTPUT
             echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
           fi
