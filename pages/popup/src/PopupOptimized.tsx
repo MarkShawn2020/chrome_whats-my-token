@@ -40,6 +40,7 @@ const PopupOptimized = () => {
 
 	const [filter, setFilter] = useState("");
 	const [copiedId, setCopiedId] = useState<string | null>(null);
+	const [expandedTokens, setExpandedTokens] = useState<string[]>([]);
 
 	const isLight = themeData.isLight;
 	const tokens = tokenData.tokens || [];
@@ -54,14 +55,18 @@ const PopupOptimized = () => {
 		);
 	}, [tokens, filter]);
 
-	// Group tokens by domain
-	const groupedTokens = useMemo(() => {
+	// Group requests by token value
+	const groupedByToken = useMemo(() => {
 		const groups: Record<string, BearerTokenType[]> = {};
-		filteredTokens.forEach((token) => {
-			if (!groups[token.domain]) {
-				groups[token.domain] = [];
+		filteredTokens.forEach((request) => {
+			if (!groups[request.token]) {
+				groups[request.token] = [];
 			}
-			groups[token.domain].push(token);
+			groups[request.token].push(request);
+		});
+		// Sort each group by timestamp (newest first)
+		Object.values(groups).forEach(group => {
+			group.sort((a, b) => b.timestamp - a.timestamp);
 		});
 		return groups;
 	}, [filteredTokens]);
@@ -177,7 +182,7 @@ const PopupOptimized = () => {
 							Browse websites that use Bearer authentication.
 						</p>
 					</div>
-				) : Object.entries(groupedTokens).length === 0 ? (
+				) : Object.entries(groupedByToken).length === 0 ? (
 					<div
 						className={cn(
 							"py-8 text-center",
@@ -187,36 +192,42 @@ const PopupOptimized = () => {
 						<p>No tokens match your filter.</p>
 					</div>
 				) : (
-					Object.entries(groupedTokens).map(([domain, domainTokens]) => (
-						<div key={domain} className="space-y-2">
-							<h3
-								className={cn(
-									"text-sm font-semibold",
-									isLight ? "text-gray-700" : "text-gray-300",
-								)}
-							>
-								{domain}
-							</h3>
-							{domainTokens.map((token) => (
+					<div className="space-y-2">
+						{Object.entries(groupedByToken).map(([tokenValue, requests], index) => {
+							// Get unique domains for this token
+							const uniqueDomains = [...new Set(requests.map(r => r.domain))];
+							const tokenId = `token-${index}`;
+							const isExpanded = expandedTokens.includes(tokenId);
+							
+							return (
 								<div
-									key={token.id}
+									key={tokenId}
 									className={cn(
-										"rounded border p-3",
+										"rounded border overflow-hidden",
 										isLight
 											? "border-gray-200 bg-gray-50"
 											: "border-gray-700 bg-gray-800",
 									)}
 								>
-									<div className="mb-2 flex items-start justify-between gap-2">
-										<div className="min-w-0 flex-1 overflow-hidden">
+									<button
+										onClick={() => {
+											setExpandedTokens(prev => 
+												isExpanded 
+													? prev.filter(id => id !== tokenId)
+													: [...prev, tokenId]
+											);
+										}}
+										className="w-full px-4 py-3 flex items-center justify-between hover:bg-opacity-80 transition-all"
+									>
+										<div className="min-w-0 flex-1 text-left">
 											<p
 												className={cn(
-													"truncate font-mono text-xs",
-													isLight ? "text-gray-600" : "text-gray-400",
+													"truncate font-mono text-sm",
+													isLight ? "text-gray-700" : "text-gray-300",
 												)}
-												title={token.token}
+												title={tokenValue}
 											>
-												{truncateToken(token.token)}
+												{truncateToken(tokenValue)}
 											</p>
 											<p
 												className={cn(
@@ -224,32 +235,87 @@ const PopupOptimized = () => {
 													isLight ? "text-gray-500" : "text-gray-500",
 												)}
 											>
-												{token.method} • {formatTime(token.timestamp)}
+												{requests.length} request{requests.length > 1 ? 's' : ''} • {uniqueDomains.join(', ')}
 											</p>
 										</div>
-										<Button
-											onClick={() => copyToClipboard(token.token, token.id)}
-											variant={copiedId === token.id ? "secondary" : "default"}
-											size="sm"
-											className="h-7 px-2 text-xs"
-											title="Copy token to clipboard"
-										>
-											{copiedId === token.id ? "Copied!" : "Copy"}
-										</Button>
-									</div>
-									<p
-										className={cn(
-											"truncate text-xs",
-											isLight ? "text-gray-500" : "text-gray-500",
-										)}
-										title={token.url}
-									>
-										{token.url}
-									</p>
+										<div className="flex items-center gap-2">
+											<Button
+												onClick={(e) => {
+													e.stopPropagation();
+													copyToClipboard(tokenValue, tokenId);
+												}}
+												variant={copiedId === tokenId ? "secondary" : "default"}
+												size="sm"
+												className="h-7 px-2 text-xs"
+												title="Copy token to clipboard"
+											>
+												{copiedId === tokenId ? "Copied!" : "Copy"}
+											</Button>
+											<svg
+												className={cn(
+													"h-4 w-4 transition-transform",
+													isExpanded ? "rotate-180" : "",
+													isLight ? "text-gray-600" : "text-gray-400"
+												)}
+												fill="none"
+												viewBox="0 0 24 24"
+												stroke="currentColor"
+											>
+												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+											</svg>
+										</div>
+									</button>
+									{isExpanded && (
+										<div className="px-4 pb-3 border-t border-gray-200 dark:border-gray-700">
+											<div className="space-y-2 mt-3">
+												{requests.map((request) => (
+													<div
+														key={request.id}
+														className={cn(
+															"rounded border p-2",
+															isLight
+																? "border-gray-300 bg-white"
+																: "border-gray-600 bg-gray-900",
+														)}
+													>
+														<div className="flex items-start justify-between gap-2">
+															<div className="min-w-0 flex-1">
+																<p
+																	className={cn(
+																		"text-sm font-medium",
+																		isLight ? "text-gray-700" : "text-gray-300",
+																	)}
+																>
+																	{request.domain}
+																</p>
+																<p
+																	className={cn(
+																		"mt-1 truncate text-xs",
+																		isLight ? "text-gray-500" : "text-gray-500",
+																	)}
+																	title={request.url}
+																>
+																	{request.method} {request.url}
+																</p>
+																<p
+																	className={cn(
+																		"mt-1 text-xs",
+																		isLight ? "text-gray-400" : "text-gray-600",
+																	)}
+																>
+																	{formatTime(request.timestamp)}
+																</p>
+															</div>
+														</div>
+													</div>
+												))}
+											</div>
+										</div>
+									)}
 								</div>
-							))}
-						</div>
-					))
+							);
+						})}
+					</div>
 				)}
 			</div>
 		</div>
