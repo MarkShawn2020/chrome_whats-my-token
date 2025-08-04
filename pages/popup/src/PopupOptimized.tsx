@@ -32,7 +32,7 @@ const useDirectStorage = <T,>(
 };
 
 const PopupOptimized = () => {
-	const { data: themeData } = useDirectStorage(exampleThemeStorage, { isLight: true });
+	const { data: themeData } = useDirectStorage(exampleThemeStorage, { theme: "light", isLight: true });
 	const { data: tokenData, loading } = useDirectStorage<BearerTokensStateType>(
 		bearerTokenStorage,
 		{ tokens: [] },
