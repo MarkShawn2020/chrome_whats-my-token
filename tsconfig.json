@@ -8,5 +8,5 @@
 		"strict": false,
 		"target": "ESNext"
 	},
-	"include": ["eslint.config.ts"]
+	"include": ["eslint.config.ts", "scripts/**/*.ts"]
 }

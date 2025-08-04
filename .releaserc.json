@@ -1,0 +1,47 @@
+{
+  "branches": ["main"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": false
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "pnpm update-version ${nextRelease.version} && pnpm build && pnpm build:firefox && pnpm zip"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "package.json",
+          "pnpm-lock.yaml",
+          "chrome-extension/manifest.json",
+          "CHANGELOG.md"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "dist/*.zip",
+            "label": "Chrome Extension (${nextRelease.version})"
+          },
+          {
+            "path": "dist/*-firefox.zip", 
+            "label": "Firefox Extension (${nextRelease.version})"
+          }
+        ]
+      }
+    ]
+  ]
+}

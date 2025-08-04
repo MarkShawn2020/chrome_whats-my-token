@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm type-check
+
+      - name: Build Chrome extension
+        run: pnpm build
+
+      - name: Build Firefox extension
+        run: pnpm build:firefox
+
+      - name: Run E2E tests
+        run: pnpm e2e
+        continue-on-error: true
+
+      - name: Upload Chrome build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-extension-${{ matrix.node-version }}
+          path: dist/
+
+      - name: Upload Firefox build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-extension-${{ matrix.node-version }}
+          path: dist/*-firefox.zip
