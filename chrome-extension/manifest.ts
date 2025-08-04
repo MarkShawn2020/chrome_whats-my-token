@@ -39,6 +39,7 @@ const manifest = {
 		"sidePanel",
 		"webRequest",
 		"webRequestBlocking",
+		"alarms",
 	],
 	background: {
 		service_worker: "background.js",

@@ -1,5 +1,5 @@
 import "@src/index.css";
-import Popup from "@src/Popup";
+import PopupOptimized from "@src/PopupOptimized";
 import { createRoot } from "react-dom/client";
 
 const init = () => {
@@ -9,7 +9,7 @@ const init = () => {
 	}
 	const root = createRoot(appContainer);
 
-	root.render(<Popup />);
+	root.render(<PopupOptimized />);
 };
 
 init();

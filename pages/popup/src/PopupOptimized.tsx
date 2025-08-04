@@ -1,17 +1,48 @@
 import "@src/Popup.css";
 import { t } from "@extension/i18n";
-import { useStorage, withErrorBoundary, withSuspense } from "@extension/shared";
-import type { BearerTokenType } from "@extension/storage";
+import type { BearerTokenType, BearerTokensStateType } from "@extension/storage";
 import { bearerTokenStorage, exampleThemeStorage } from "@extension/storage";
-import { cn, ErrorDisplay, LoadingSpinner } from "@extension/ui";
+import { cn } from "@extension/ui";
 import { useEffect, useMemo, useState } from "react";
 
-// Separate component to handle data loading with Suspense
-const PopupContent = () => {
-	const { isLight } = useStorage(exampleThemeStorage);
-	const { tokens } = useStorage(bearerTokenStorage);
+// Direct storage access without Suspense for faster initial load
+const useDirectStorage = <T,>(
+	storage: { get: () => Promise<T>; subscribe: (callback: () => void) => () => void },
+	initialValue: T,
+) => {
+	const [data, setData] = useState<T>(initialValue);
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		// Load initial data
+		storage.get().then((value) => {
+			setData(value);
+			setLoading(false);
+		});
+
+		// Subscribe to updates
+		const unsubscribe = storage.subscribe(() => {
+			storage.get().then(setData);
+		});
+
+		return unsubscribe;
+	}, [storage]);
+
+	return { data, loading };
+};
+
+const PopupOptimized = () => {
+	const { data: themeData } = useDirectStorage(exampleThemeStorage, { isLight: true });
+	const { data: tokenData, loading } = useDirectStorage<BearerTokensStateType>(
+		bearerTokenStorage,
+		{ tokens: [] },
+	);
+
 	const [filter, setFilter] = useState("");
 	const [copiedId, setCopiedId] = useState<string | null>(null);
+
+	const isLight = themeData.isLight;
+	const tokens = tokenData.tokens || [];
 
 	// Filter tokens by domain
 	const filteredTokens = useMemo(() => {
@@ -130,7 +161,16 @@ const PopupContent = () => {
 			</header>
 
 			<div className="flex-1 space-y-4 overflow-y-auto pr-2">
-				{tokens.length === 0 ? (
+				{loading ? (
+					<div
+						className={cn(
+							"py-8 text-center",
+							isLight ? "text-gray-500" : "text-gray-400",
+						)}
+					>
+						<p>Loading...</p>
+					</div>
+				) : tokens.length === 0 ? (
 					<div
 						className={cn(
 							"py-8 text-center",
@@ -226,28 +266,4 @@ const PopupContent = () => {
 	);
 };
 
-// Fast initial render wrapper to avoid popup delay
-const Popup = () => {
-	const [isReady, setIsReady] = useState(false);
-
-	useEffect(() => {
-		// Small delay to ensure smooth popup opening
-		const timer = setTimeout(() => setIsReady(true), 10);
-		return () => clearTimeout(timer);
-	}, []);
-
-	if (!isReady) {
-		return (
-			<div className="flex h-full w-full items-center justify-center bg-white dark:bg-gray-900">
-				<LoadingSpinner />
-			</div>
-		);
-	}
-
-	return <PopupContent />;
-};
-
-export default withErrorBoundary(
-	withSuspense(Popup, <LoadingSpinner />),
-	ErrorDisplay,
-);
+export default PopupOptimized;

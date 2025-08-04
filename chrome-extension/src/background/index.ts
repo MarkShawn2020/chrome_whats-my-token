@@ -2,6 +2,19 @@ import "webextension-polyfill";
 import type { BearerTokenType } from "@extension/storage";
 import { bearerTokenStorage } from "@extension/storage";
 
+// Keep service worker active
+chrome.runtime.onInstalled.addListener(() => {
+	console.log("Fast Bearer extension installed");
+});
+
+// Prevent service worker from going idle
+chrome.alarms.create("keep-alive", { periodInMinutes: 0.25 });
+chrome.alarms.onAlarm.addListener((alarm) => {
+	if (alarm.name === "keep-alive") {
+		// Keep-alive ping
+	}
+});
+
 // Generate unique ID for each token
 function generateId(): string {
 	return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -51,14 +64,6 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 
 				// Store the token
 				bearerTokenStorage.addToken(bearerToken).catch(console.error);
-
-				// Show notification (optional)
-				chrome.notifications.create({
-					type: "basic",
-					iconUrl: chrome.runtime.getURL("icon-128.png"),
-					title: "Bearer Token Captured",
-					message: `Token captured from ${domain}`,
-				});
 			}
 		}
 	},
@@ -82,11 +87,6 @@ chrome.runtime.onMessage.addListener(async (message, sender) => {
 
 		await bearerTokenStorage.addToken(bearerToken);
 	}
-});
-
-// Handle extension icon click to open popup
-chrome.action.onClicked.addListener(() => {
-	chrome.action.openPopup();
 });
 
 console.log("Fast Bearer background service loaded");
