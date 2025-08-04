@@ -37,12 +37,9 @@ export const bearerTokenStorage: BearerTokenStorageType = {
 	...storage,
 	addToken: async (token: BearerTokenType) => {
 		await storage.set((currentState) => {
-			// Remove duplicates and add new token
-			const filteredTokens = currentState.tokens.filter(
-				(t) => !(t.domain === token.domain && t.token === token.token),
-			);
+			// Keep all requests without deduplication
 			return {
-				tokens: [...filteredTokens, token],
+				tokens: [...currentState.tokens, token],
 			};
 		});
 	},

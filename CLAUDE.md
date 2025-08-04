@@ -136,3 +136,7 @@ The project uses Turborepo and pnpm workspaces for managing multiple packages:
 2. **TypeScript**: Disabled strict mode checks
 3. **shadcn/ui**: Manually integrated with custom CSS variable theming
 4. **Content Scripts**: CSS imports removed to fix build errors
+
+### Development Guidelines
+
+- **Local Development Note**: 不要使用build，本地在dev
