@@ -12,7 +12,6 @@
 		"clean:node_modules": "pnpx rimraf node_modules",
 		"clean:turbo": "rimraf .turbo",
 		"clean": "pnpm clean:turbo && pnpm clean:node_modules",
-		"ready": "echo 'Ready for build'",
 		"build": "tsx build.mts",
 		"dev": "tsx build.mts",
 		"lint": "eslint .",
