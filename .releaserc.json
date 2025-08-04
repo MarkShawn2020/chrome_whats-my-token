@@ -13,7 +13,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "pnpm update-version ${nextRelease.version} && pnpm build && pnpm build:firefox && pnpm zip"
+        "prepareCmd": "pnpm update-version ${nextRelease.version}"
       }
     ],
     [
@@ -33,12 +33,8 @@
       {
         "assets": [
           {
-            "path": "dist/*.zip",
+            "path": "dist-zip/extension-*.zip",
             "label": "Chrome Extension (${nextRelease.version})"
-          },
-          {
-            "path": "dist/*-firefox.zip", 
-            "label": "Firefox Extension (${nextRelease.version})"
           }
         ]
       }

@@ -19,15 +19,11 @@
 		"type-check": "turbo type-check",
 		"base-build": "pnpm clean:bundle && turbo build",
 		"build": "pnpm set-global-env && pnpm base-build",
-		"build:firefox": "pnpm set-global-env CLI_CEB_FIREFOX=true && pnpm base-build",
 		"base-dev": "pnpm clean:bundle && turbo ready && turbo watch dev",
 		"dev": "pnpm set-global-env CLI_CEB_DEV=true && pnpm base-dev",
-		"dev:firefox": "pnpm set-global-env CLI_CEB_DEV=true CLI_CEB_FIREFOX=true && pnpm base-dev",
 		"dev:inspector": "vite --config vite.config.dev.mts",
 		"zip": "pnpm build && pnpm -F zipper zip",
-		"zip:firefox": "pnpm build:firefox && pnpm -F zipper zip",
 		"e2e": "pnpm zip && turbo e2e",
-		"e2e:firefox": "pnpm zip:firefox && turbo e2e",
 		"lint": "turbo lint --continue",
 		"lint:fix": "turbo lint:fix --continue",
 		"format": "turbo format --continue -- --cache --cache-location node_modules/.cache/.prettiercache",
@@ -38,7 +34,6 @@
 		"module-manager": "pnpm -F module-manager start",
 		"postinstall": "pnpm copy-env",
 		"publish:chrome": "tsx scripts/publish-chrome.ts",
-		"publish:firefox": "tsx scripts/publish-firefox.ts",
 		"release": "semantic-release"
 	},
 	"dependencies": {
@@ -95,8 +90,7 @@
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.32.1",
 		"vite": "^6.3.5",
-		"vite-plugin-node-polyfills": "^0.23.0",
-		"web-ext": "^8.9.0"
+		"vite-plugin-node-polyfills": "^0.23.0"
 	},
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx}": [

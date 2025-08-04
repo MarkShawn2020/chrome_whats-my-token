@@ -41,14 +41,11 @@ jobs:
       - name: Build Chrome extension
         run: pnpm build
 
-      - name: Build Firefox extension
-        run: pnpm build:firefox
-
       - name: Run E2E tests
         run: pnpm e2e
         continue-on-error: true
 
-  release:
+  release-and-publish:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -76,34 +73,20 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm exec semantic-release
 
-  publish-chrome:
-    needs: release
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: main
+      - name: Build and Package Chrome extension
+        run: |
+          pnpm build
+          pnpm zip
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Chrome extension
-        run: pnpm build
-
-      - name: Package Chrome extension
-        run: pnpm zip
+      - name: Find zip file
+        id: find-zip
+        run: |
+          ZIP_FILE=$(find dist-zip -name "extension-*.zip" -type f | head -1)
+          echo "ZIP_FILE=$ZIP_FILE" >> $GITHUB_OUTPUT
+          echo "Found zip file: $ZIP_FILE"
 
       - name: Publish to Chrome Web Store
+        if: secrets.CHROME_EXTENSION_ID != ''
         env:
           EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
@@ -111,43 +94,5 @@ jobs:
           REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
         run: |
           npx chrome-webstore-upload-cli upload \
-            --source dist/whatsmytoken-*.zip \
+            --source "${{ steps.find-zip.outputs.ZIP_FILE }}" \
             --extension-id $EXTENSION_ID
-
-  publish-firefox:
-    needs: release
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Firefox extension
-        run: pnpm build:firefox
-
-      - name: Package Firefox extension
-        run: pnpm zip
-
-      - name: Publish to Firefox Add-ons
-        env:
-          WEB_EXT_API_KEY: ${{ secrets.FIREFOX_API_KEY }}
-          WEB_EXT_API_SECRET: ${{ secrets.FIREFOX_API_SECRET }}
-        run: |
-          npx web-ext sign \
-            --source-dir dist \
-            --artifacts-dir dist-signed \
-            --api-key $WEB_EXT_API_KEY \
-            --api-secret $WEB_EXT_API_SECRET

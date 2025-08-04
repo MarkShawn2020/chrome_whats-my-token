@@ -1,6 +1,6 @@
 # CI/CD Setup Guide for WhatsMyToken
 
-This guide explains how to set up the automated CI/CD pipeline for publishing WhatsMyToken to Chrome Web Store and Firefox Add-ons.
+This guide explains how to set up the automated CI/CD pipeline for publishing WhatsMyToken to Chrome Web Store.
 
 ## Overview
 
@@ -8,7 +8,6 @@ The CI/CD pipeline uses:
 - **Semantic Release** - Automated versioning based on commit messages
 - **GitHub Actions** - CI/CD platform
 - **chrome-webstore-upload-cli** - Chrome Web Store publishing
-- **web-ext** - Firefox Add-ons publishing
 
 ## GitHub Secrets Required
 
@@ -31,15 +30,6 @@ To get Chrome OAuth credentials:
 4. Create OAuth2 credentials (Desktop application type)
 5. Use the [Chrome Web Store API Guide](https://developer.chrome.com/docs/webstore/using-api) to get refresh token
 
-### Firefox Add-ons Secrets
-
-1. **`FIREFOX_API_KEY`** - API key from addons.mozilla.org
-2. **`FIREFOX_API_SECRET`** - API secret from addons.mozilla.org
-
-To get Firefox credentials:
-1. Log in to [addons.mozilla.org](https://addons.mozilla.org)
-2. Go to Developer Hub > API Keys
-3. Generate new credentials
 
 ### Optional Secrets
 
@@ -69,8 +59,8 @@ feat!: change storage format (breaking change)
   1. Run tests, lint, and type checks
   2. Build extensions for Chrome and Firefox
   3. Create GitHub release with semantic-release
-  4. Publish to Chrome Web Store
-  5. Publish to Firefox Add-ons
+  4. Build and package extension
+  5. Publish to Chrome Web Store
 
 ### 2. CI Workflow (`ci.yml`)
 - **Trigger**: Pull requests and non-main branches
@@ -91,16 +81,11 @@ export CHROME_CLIENT_SECRET="your-client-secret"
 export CHROME_REFRESH_TOKEN="your-refresh-token"
 pnpm publish:chrome
 
-# Firefox Add-ons
-export FIREFOX_API_KEY="your-api-key"
-export FIREFOX_API_SECRET="your-api-secret"
-pnpm publish:firefox
 ```
 
 ## First-Time Setup Checklist
 
 1. [ ] Set up Chrome Web Store developer account ($5 one-time fee)
-2. [ ] Set up Firefox Add-ons developer account (free)
 3. [ ] Create OAuth2 credentials in Google Cloud Console
 4. [ ] Generate Firefox API credentials
 5. [ ] Add all secrets to GitHub repository settings
@@ -113,10 +98,6 @@ pnpm publish:firefox
 - After approval, automated updates work immediately
 - Check [Chrome Web Store API status](https://status.cloud.google.com/)
 
-### Firefox Add-ons
-- Submissions go through automated review (usually < 1 hour)
-- Check signing logs in `dist-signed/` directory
-- Use `--channel=unlisted` for testing
 
 ### Semantic Release
 - Ensure commit messages follow convention

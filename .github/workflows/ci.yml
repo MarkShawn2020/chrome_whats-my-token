@@ -41,9 +41,6 @@ jobs:
       - name: Build Chrome extension
         run: pnpm build
 
-      - name: Build Firefox extension
-        run: pnpm build:firefox
-
       - name: Run E2E tests
         run: pnpm e2e
         continue-on-error: true
@@ -53,9 +50,3 @@ jobs:
         with:
           name: chrome-extension-${{ matrix.node-version }}
           path: dist/
-
-      - name: Upload Firefox build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: firefox-extension-${{ matrix.node-version }}
-          path: dist/*-firefox.zip
