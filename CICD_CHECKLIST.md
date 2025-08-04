@@ -195,12 +195,38 @@ pnpm build
 pnpm zip
 ```
 
+## Release 产物说明
+
+每个 GitHub Release 会包含以下文件：
+
+1. **whatsmytoken-v{version}-chrome.zip**
+   - Chrome 扩展包，可直接上传到 Chrome Web Store
+   - 也可用于本地开发者模式安装
+
+2. **whatsmytoken-v{version}-dist.tar.gz**
+   - 完整的构建输出（适用于 Linux/Mac）
+   - 包含所有编译后的文件
+
+3. **whatsmytoken-v{version}-dist.zip**
+   - 完整的构建输出（适用于 Windows）
+   - 包含所有编译后的文件
+
+### 手动安装方法
+
+1. 从 GitHub Releases 下载 `whatsmytoken-v{version}-chrome.zip`
+2. 解压到本地文件夹
+3. 打开 Chrome 浏览器，访问 `chrome://extensions/`
+4. 开启"开发者模式"
+5. 点击"加载已解压的扩展程序"
+6. 选择解压后的文件夹
+
 ## 成功标志
 
 当 CI/CD 正常工作时，你应该看到：
 
 1. ✅ GitHub Actions 显示绿色勾号
-2. ✅ GitHub Releases 页面有新版本
+2. ✅ GitHub Releases 页面有新版本，包含三个下载文件
 3. ✅ CHANGELOG.md 自动更新
 4. ✅ package.json 版本号自动递增
-5. ✅ Chrome Web Store 显示新版本（可能有延迟）
+5. ✅ Chrome Web Store 显示新版本（需要配置 secrets）
+6. ✅ Release 评论中有安装说明

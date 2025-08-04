@@ -51,11 +51,19 @@
       {
         "assets": [
           {
-            "path": "dist-zip/extension-*.zip",
-            "label": "Chrome Extension v${nextRelease.version}",
-            "name": "whatsmytoken-v${nextRelease.version}.zip"
+            "path": "dist-zip/whatsmytoken-v${nextRelease.version}-chrome.zip",
+            "label": "Chrome Extension v${nextRelease.version} (Ready for Chrome Web Store)"
+          },
+          {
+            "path": "dist-zip/whatsmytoken-v${nextRelease.version}-dist.tar.gz",
+            "label": "Build Output v${nextRelease.version} (tar.gz for Linux/Mac)"
+          },
+          {
+            "path": "dist-zip/whatsmytoken-v${nextRelease.version}-dist.zip",
+            "label": "Build Output v${nextRelease.version} (zip for Windows)"
           }
-        ]
+        ],
+        "successComment": "🎉 This release is now available!\n\n**Download Options:**\n- **Chrome Extension**: `whatsmytoken-v${nextRelease.version}-chrome.zip` - Ready to upload to Chrome Web Store\n- **Full Build (Linux/Mac)**: `whatsmytoken-v${nextRelease.version}-dist.tar.gz`\n- **Full Build (Windows)**: `whatsmytoken-v${nextRelease.version}-dist.zip`\n\n**Installation:**\n1. Download the Chrome extension zip\n2. Open `chrome://extensions/`\n3. Enable \"Developer mode\"\n4. Click \"Load unpacked\" and select the extracted folder"
       }
     ]
   ]

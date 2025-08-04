@@ -67,23 +67,60 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check next version
+        id: check-version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the next version without releasing
+          NEXT_VERSION=$(pnpm exec semantic-release --dry-run | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+' || echo "")
+          
+          if [ -z "$NEXT_VERSION" ]; then
+            echo "No release needed"
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          else
+            echo "Next version will be: $NEXT_VERSION"
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build all artifacts
+        if: steps.check-version.outputs.should_release == 'true'
+        run: |
+          VERSION=${{ steps.check-version.outputs.next_version }}
+          echo "Building artifacts for version: $VERSION"
+          
+          # Build the extension
+          pnpm build
+          
+          # Create extension zip
+          pnpm zip
+          
+          # Create versioned artifacts in dist-zip
+          mkdir -p dist-zip
+          
+          # Rename the extension zip
+          EXTENSION_ZIP=$(find dist-zip -name "extension-*.zip" -type f | head -1)
+          if [ -n "$EXTENSION_ZIP" ]; then
+            mv "$EXTENSION_ZIP" "dist-zip/whatsmytoken-v${VERSION}-chrome.zip"
+          else
+            # If no extension zip found, create one from dist
+            cd dist && zip -r "../dist-zip/whatsmytoken-v${VERSION}-chrome.zip" . && cd ..
+          fi
+          
+          # Create dist archives
+          tar -czf "dist-zip/whatsmytoken-v${VERSION}-dist.tar.gz" -C . dist
+          zip -r "dist-zip/whatsmytoken-v${VERSION}-dist.zip" dist
+          
+          echo "Created release artifacts:"
+          ls -la dist-zip/
+
       - name: Release
+        if: steps.check-version.outputs.should_release == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm exec semantic-release
-
-      - name: Build and Package Chrome extension
-        run: |
-          pnpm build
-          pnpm zip
-
-      - name: Find zip file
-        id: find-zip
-        run: |
-          ZIP_FILE=$(find dist-zip -name "extension-*.zip" -type f | head -1)
-          echo "ZIP_FILE=$ZIP_FILE" >> $GITHUB_OUTPUT
-          echo "Found zip file: $ZIP_FILE"
 
       - name: Check Chrome Web Store Secrets
         id: check-secrets
@@ -96,13 +133,14 @@ jobs:
           fi
 
       - name: Publish to Chrome Web Store
-        if: steps.check-secrets.outputs.has_chrome_secrets == 'true'
+        if: steps.check-secrets.outputs.has_chrome_secrets == 'true' && steps.check-version.outputs.should_release == 'true'
         env:
           EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
           REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
         run: |
+          VERSION=${{ steps.check-version.outputs.next_version }}
           npx chrome-webstore-upload-cli upload \
-            --source "${{ steps.find-zip.outputs.ZIP_FILE }}" \
+            --source "dist-zip/whatsmytoken-v${VERSION}-chrome.zip" \
             --extension-id $EXTENSION_ID
