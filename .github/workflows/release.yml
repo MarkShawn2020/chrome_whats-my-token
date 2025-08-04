@@ -72,8 +72,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Configure git to use the correct repository
-          git remote set-url origin https://github.com/MarkShawn2020/chrome_whats-my-token.git
+          # Configure git to use the correct repository from GitHub context
+          git remote set-url origin https://github.com/${{ github.repository }}.git
           
           # Run semantic-release in dry-run mode and capture output
           OUTPUT=$(pnpm exec semantic-release --dry-run --ci false 2>&1 || true)
