@@ -10,14 +10,12 @@ WhatsMyToken is a Chrome/Firefox extension that captures authentication tokens f
 
 ### Development
 ```bash
-pnpm dev              # Chrome development with HMR
-pnpm dev:firefox      # Firefox development with HMR
+pnpm dev              # Development with HMR
 ```
 
 ### Build & Production
 ```bash
-pnpm build           # Production build for Chrome
-pnpm build:firefox   # Production build for Firefox
+pnpm build           # Production build
 pnpm zip             # Build and create zip for distribution
 ```
 
