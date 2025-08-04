@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test shadcn/ui</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('./dist/global.css');
+    </style>
+</head>
+<body class="p-8">
+    <h1 class="text-2xl font-bold mb-4">shadcn/ui Test Page</h1>
+    
+    <div class="space-y-4">
+        <div>
+            <h2 class="text-lg font-semibold mb-2">Colors Test</h2>
+            <div class="flex gap-2">
+                <div class="w-20 h-20 bg-background border">bg</div>
+                <div class="w-20 h-20 bg-primary text-primary-foreground p-2">primary</div>
+                <div class="w-20 h-20 bg-secondary text-secondary-foreground p-2">secondary</div>
+                <div class="w-20 h-20 bg-destructive text-destructive-foreground p-2">destructive</div>
+                <div class="w-20 h-20 bg-muted text-muted-foreground p-2">muted</div>
+            </div>
+        </div>
+        
+        <div>
+            <h2 class="text-lg font-semibold mb-2">Border Radius Test</h2>
+            <div class="flex gap-2">
+                <div class="w-20 h-20 bg-primary rounded-sm"></div>
+                <div class="w-20 h-20 bg-primary rounded-md"></div>
+                <div class="w-20 h-20 bg-primary rounded-lg"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

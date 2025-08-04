@@ -1,5 +1,7 @@
 import { initAppWithShadow } from "@extension/shared";
 import App from "@src/matches/example/App";
-import inlineCss from "../../../dist/example/index.css?inline";
+
+// Skip CSS import for Fast Bearer as we don't need content UI
+const inlineCss = "";
 
 initAppWithShadow({ id: "CEB-extension-example", app: <App />, inlineCss });

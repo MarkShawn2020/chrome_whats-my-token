@@ -2,7 +2,7 @@ import "@src/Popup.css";
 import { t } from "@extension/i18n";
 import type { BearerTokenType, BearerTokensStateType } from "@extension/storage";
 import { bearerTokenStorage, exampleThemeStorage } from "@extension/storage";
-import { cn } from "@extension/ui";
+import { cn, Button } from "@extension/ui";
 import { useEffect, useMemo, useState } from "react";
 
 // Direct storage access without Suspense for faster initial load
@@ -144,19 +144,14 @@ const PopupOptimized = () => {
 								: "border-gray-700 bg-gray-800 text-gray-100",
 						)}
 					/>
-					<button
+					<Button
 						onClick={clearAllTokens}
 						disabled={tokens.length === 0}
-						className={cn(
-							"rounded px-4 py-2 text-sm font-medium transition-colors",
-							tokens.length === 0
-								? "cursor-not-allowed opacity-50"
-								: "hover:opacity-90",
-							isLight ? "bg-red-500 text-white" : "bg-red-600 text-white",
-						)}
+						variant="destructive"
+						size="sm"
 					>
 						Clear All
-					</button>
+					</Button>
 				</div>
 			</header>
 
@@ -232,20 +227,15 @@ const PopupOptimized = () => {
 												{token.method} • {formatTime(token.timestamp)}
 											</p>
 										</div>
-										<button
+										<Button
 											onClick={() => copyToClipboard(token.token, token.id)}
-											className={cn(
-												"flex-shrink-0 rounded px-3 py-1 text-xs font-medium transition-all",
-												copiedId === token.id
-													? "bg-green-500 text-white"
-													: isLight
-														? "bg-blue-500 text-white hover:bg-blue-600"
-														: "bg-blue-600 text-white hover:bg-blue-700",
-											)}
+											variant={copiedId === token.id ? "secondary" : "default"}
+											size="sm"
+											className="h-7 px-2 text-xs"
 											title="Copy token to clipboard"
 										>
 											{copiedId === token.id ? "Copied!" : "Copy"}
-										</button>
+										</Button>
 									</div>
 									<p
 										className={cn(
