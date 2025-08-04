@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fast Bearer - Development Popup</title>
+  <style>
+    body {
+      margin: 0;
+      width: 450px;
+      height: 600px;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #dev-notice {
+      background: #fef3c7;
+      color: #92400e;
+      padding: 8px 12px;
+      font-size: 12px;
+      border-bottom: 1px solid #fcd34d;
+    }
+    #app-container {
+      width: 100%;
+      height: calc(100% - 33px);
+    }
+  </style>
+</head>
+<body>
+  <div id="dev-notice">
+    🔧 Development Mode - Code Inspector enabled (Option+Shift / Alt+Shift + Click)
+  </div>
+  <div id="app-container"></div>
+  <script type="module" src="/pages/popup/src/index.tsx"></script>
+</body>
+</html>

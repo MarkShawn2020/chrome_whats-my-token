@@ -5,6 +5,7 @@ import deepmerge from "deepmerge";
 import type { UserConfig } from "vite";
 import { defineConfig } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
+import { codeInspectorPlugin } from "code-inspector-plugin";
 
 export const watchOption = IS_DEV
 	? {
@@ -25,6 +26,7 @@ export const withPageConfig = (config: UserConfig) =>
 				plugins: [
 					react(),
 					IS_DEV && watchRebuildPlugin({ refresh: true }),
+					IS_DEV && codeInspectorPlugin({ bundler: "vite" }),
 					nodePolyfills(),
 				],
 				build: {

@@ -81,14 +81,17 @@ The project uses Turborepo and pnpm workspaces for managing multiple packages:
 2. **Hot Module Reloading**: Custom HMR plugin enables instant updates during development
 3. **Module System**: Use `pnpm module-manager` to enable/disable specific extension features
 4. **Build System**: Turborepo orchestrates parallel builds with caching for optimal performance
+5. **Code Inspector**: Integrated code-inspector-plugin for quick source code navigation
+   - Press `Option + Shift` (Mac) or `Alt + Shift` (Windows/Linux) and click any element
+   - Automatically opens the source file in your editor at the exact location
+   - Only enabled in development mode
 
 ### Code Conventions
 
-- **TypeScript**: Strict mode enabled with shared base configuration in `packages/tsconfig/base.json`
+- **TypeScript**: Relaxed configuration with shared base in `packages/tsconfig/base.json`
 - **React**: Using React 19 with JSX runtime
 - **Styling**: Tailwind CSS with shared configuration
-- **Linting**: ESLint 9 with flat config, TypeScript ESLint, and import rules
-- **Formatting**: Prettier with lint-staged for pre-commit hooks
+- **Linting**: ESLint 9 with relaxed rules for development flexibility
 - **Git Hooks**: Husky runs lint-staged on commits
 
 ### Environment Variables

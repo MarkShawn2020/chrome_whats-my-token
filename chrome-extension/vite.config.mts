@@ -5,6 +5,7 @@ import { watchOption } from "@extension/vite-config";
 import libAssetsPlugin from "@laynezh/vite-plugin-lib-assets";
 import { defineConfig, type PluginOption } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
+import { codeInspectorPlugin } from "code-inspector-plugin";
 import makeManifestPlugin from "./utils/plugins/make-manifest-plugin.js";
 
 const rootDir = resolve(import.meta.dirname);
@@ -29,6 +30,7 @@ export default defineConfig({
 		watchPublicPlugin(),
 		makeManifestPlugin({ outDir }),
 		IS_DEV && watchRebuildPlugin({ reload: true, id: "chrome-extension-hmr" }),
+		IS_DEV && codeInspectorPlugin({ bundler: "vite" }),
 		nodePolyfills(),
 	],
 	publicDir: resolve(rootDir, "public"),
