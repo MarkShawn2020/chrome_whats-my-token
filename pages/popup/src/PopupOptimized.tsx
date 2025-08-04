@@ -2,7 +2,7 @@ import "@src/Popup.css";
 import { t } from "@extension/i18n";
 import type { BearerTokenType, BearerTokensStateType } from "@extension/storage";
 import { bearerTokenStorage, exampleThemeStorage } from "@extension/storage";
-import { cn, Button, Switch, Tabs, TabsList, TabsTrigger, TabsContent } from "@extension/ui";
+import { cn, Button, Tabs, TabsList, TabsTrigger, TabsContent } from "@extension/ui";
 import { useEffect, useMemo, useState } from "react";
 
 // Direct storage access without Suspense for faster initial load
@@ -41,11 +41,35 @@ const PopupOptimized = () => {
 	const [filter, setFilter] = useState("");
 	const [copiedId, setCopiedId] = useState<string | null>(null);
 	const [expandedTokens, setExpandedTokens] = useState<string[]>([]);
-	const [showCurrentDomain, setShowCurrentDomain] = useState(false);
+	const [domainFilter, setDomainFilter] = useState<"current" | "root" | "all">("all");
 	const [currentDomain, setCurrentDomain] = useState<string>("");
+	const [currentRootDomain, setCurrentRootDomain] = useState<string>("");
 
 	const isLight = themeData.isLight;
 	const tokens = tokenData.tokens || [];
+
+	// Extract root domain from a full domain
+	const getRootDomain = (domain: string): string => {
+		// Handle IP addresses and localhost
+		if (/^(\d{1,3}\.){3}\d{1,3}$/.test(domain) || domain === "localhost") {
+			return domain;
+		}
+		
+		// For regular domains, get the last two parts (e.g., google.com from mail.google.com)
+		const parts = domain.split(".");
+		if (parts.length <= 2) {
+			return domain;
+		}
+		
+		// Handle special TLDs like .co.uk, .com.cn
+		const specialTLDs = ["co.uk", "com.cn", "com.au", "co.jp", "co.kr", "co.in"];
+		const lastThree = parts.slice(-3).join(".");
+		if (specialTLDs.some(tld => lastThree.endsWith(tld))) {
+			return parts.slice(-3).join(".");
+		}
+		
+		return parts.slice(-2).join(".");
+	};
 
 	// Get current tab domain
 	useEffect(() => {
@@ -53,10 +77,13 @@ const PopupOptimized = () => {
 			if (tabs[0]?.url) {
 				try {
 					const url = new URL(tabs[0].url);
-					setCurrentDomain(url.hostname);
+					const hostname = url.hostname;
+					setCurrentDomain(hostname);
+					setCurrentRootDomain(getRootDomain(hostname));
 				} catch (e) {
 					// Invalid URL, keep empty domain
 					setCurrentDomain("");
+					setCurrentRootDomain("");
 				}
 			}
 		});
@@ -66,10 +93,16 @@ const PopupOptimized = () => {
 	const filteredTokens = useMemo(() => {
 		let filtered = tokens;
 		
-		// Apply domain filter if showCurrentDomain is true
-		if (showCurrentDomain && currentDomain) {
+		// Apply domain filter
+		if (domainFilter === "current" && currentDomain) {
 			filtered = filtered.filter(token => token.domain === currentDomain);
+		} else if (domainFilter === "root" && currentRootDomain) {
+			filtered = filtered.filter(token => {
+				const tokenRoot = getRootDomain(token.domain);
+				return tokenRoot === currentRootDomain || token.domain.endsWith(`.${currentRootDomain}`);
+			});
 		}
+		// "all" doesn't need filtering
 		
 		// Apply search filter
 		if (filter) {
@@ -81,7 +114,7 @@ const PopupOptimized = () => {
 		}
 		
 		return filtered;
-	}, [tokens, filter, showCurrentDomain, currentDomain]);
+	}, [tokens, filter, domainFilter, currentDomain, currentRootDomain]);
 
 	// Group requests by token value
 	const groupedByToken = useMemo(() => {
@@ -142,7 +175,7 @@ const PopupOptimized = () => {
 	return (
 		<div
 			className={cn(
-				"flex h-full w-full flex-col p-4",
+				"flex h-full w-full flex-col p-4 overflow-hidden",
 				isLight ? "bg-white" : "bg-gray-900",
 			)}
 		>
@@ -198,50 +231,46 @@ const PopupOptimized = () => {
 							>
 								Show:
 							</label>
-							<div className="flex items-center gap-2">
-								<span className={cn(
-									"text-sm",
-									showCurrentDomain
-										? isLight ? "text-gray-900 font-medium" : "text-gray-100 font-medium"
-										: isLight ? "text-gray-500" : "text-gray-500"
-								)}>
-									Current
-								</span>
-								<Switch
-									id="domain-filter"
-									checked={!showCurrentDomain}
-									onCheckedChange={(checked) => setShowCurrentDomain(!checked)}
-									className="data-[state=checked]:bg-blue-600"
-								/>
-								<span className={cn(
-									"text-sm",
-									!showCurrentDomain
-										? isLight ? "text-gray-900 font-medium" : "text-gray-100 font-medium"
-										: isLight ? "text-gray-500" : "text-gray-500"
-								)}>
-									All Domains
-								</span>
-							</div>
+							<select
+								id="domain-filter"
+								value={domainFilter}
+								onChange={(e) => setDomainFilter(e.target.value as "current" | "root" | "all")}
+								className={cn(
+									"rounded border px-3 py-1 text-sm",
+									isLight
+										? "border-gray-300 bg-white text-gray-900"
+										: "border-gray-700 bg-gray-800 text-gray-100",
+								)}
+							>
+								<option value="all">All Domains</option>
+								<option value="root" disabled={!currentRootDomain}>
+									{currentRootDomain ? `*.${currentRootDomain}` : "Root Domain"}
+								</option>
+								<option value="current" disabled={!currentDomain}>
+									{currentDomain || "Current Domain"}
+								</option>
+							</select>
 						</div>
-						{showCurrentDomain && currentDomain && (
+						{domainFilter !== "all" && (
 							<span className={cn(
 								"text-xs",
 								isLight ? "text-gray-500" : "text-gray-500"
 							)}>
-								{currentDomain}
+								{domainFilter === "current" ? currentDomain : `*.${currentRootDomain}`}
 							</span>
 						)}
 					</div>
 				</div>
 			</header>
 
-			<Tabs defaultValue="requests" className="flex-1 flex flex-col">
-				<TabsList className="grid w-full grid-cols-2">
-					<TabsTrigger value="requests">Requests</TabsTrigger>
-					<TabsTrigger value="tokens">Tokens</TabsTrigger>
+			<Tabs defaultValue="requests" className="flex-1 flex flex-col overflow-hidden">
+				<TabsList className="grid w-full grid-cols-2 mb-4">
+					<TabsTrigger value="requests" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Requests</TabsTrigger>
+					<TabsTrigger value="tokens" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Tokens</TabsTrigger>
 				</TabsList>
 				
-				<TabsContent value="requests" className="flex-1 overflow-y-auto pr-2 mt-0">
+				<TabsContent value="requests" className="flex-1 overflow-hidden mt-0">
+					<div className="h-full overflow-y-auto pr-2">
 				{loading ? (
 					<div
 						className={cn(
@@ -270,9 +299,16 @@ const PopupOptimized = () => {
 							isLight ? "text-gray-500" : "text-gray-400",
 						)}
 					>
-						{showCurrentDomain && currentDomain ? (
+						{domainFilter === "current" && currentDomain ? (
 							<>
 								<p>No tokens found for {currentDomain}</p>
+								<p className="mt-2 text-sm">
+									Try "*.{currentRootDomain}" or "All Domains" to see more tokens.
+								</p>
+							</>
+						) : domainFilter === "root" && currentRootDomain ? (
+							<>
+								<p>No tokens found for *.{currentRootDomain}</p>
 								<p className="mt-2 text-sm">
 									Switch to "All Domains" to see tokens from other sites.
 								</p>
@@ -359,9 +395,11 @@ const PopupOptimized = () => {
 							})}
 					</div>
 				)}
-			</TabsContent>
-			
-			<TabsContent value="tokens" className="flex-1 overflow-y-auto pr-2 mt-0">
+					</div>
+				</TabsContent>
+				
+				<TabsContent value="tokens" className="flex-1 overflow-hidden mt-0">
+					<div className="h-full overflow-y-auto pr-2">
 				{loading ? (
 					<div
 						className={cn(
@@ -390,9 +428,16 @@ const PopupOptimized = () => {
 							isLight ? "text-gray-500" : "text-gray-400",
 						)}
 					>
-						{showCurrentDomain && currentDomain ? (
+						{domainFilter === "current" && currentDomain ? (
 							<>
 								<p>No tokens found for {currentDomain}</p>
+								<p className="mt-2 text-sm">
+									Try "*.{currentRootDomain}" or "All Domains" to see more tokens.
+								</p>
+							</>
+						) : domainFilter === "root" && currentRootDomain ? (
+							<>
+								<p>No tokens found for *.{currentRootDomain}</p>
 								<p className="mt-2 text-sm">
 									Switch to "All Domains" to see tokens from other sites.
 								</p>
@@ -527,8 +572,9 @@ const PopupOptimized = () => {
 						})}
 					</div>
 				)}
-			</TabsContent>
-		</Tabs>
+					</div>
+				</TabsContent>
+			</Tabs>
 		</div>
 	);
 };
