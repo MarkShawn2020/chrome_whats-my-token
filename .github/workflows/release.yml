@@ -54,7 +54,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -85,8 +85,18 @@ jobs:
           echo "ZIP_FILE=$ZIP_FILE" >> $GITHUB_OUTPUT
           echo "Found zip file: $ZIP_FILE"
 
+      - name: Check Chrome Web Store Secrets
+        id: check-secrets
+        run: |
+          if [[ -n "${{ secrets.CHROME_EXTENSION_ID }}" ]]; then
+            echo "has_chrome_secrets=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_chrome_secrets=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Chrome Web Store secrets not configured. Skipping Chrome publishing."
+          fi
+
       - name: Publish to Chrome Web Store
-        if: secrets.CHROME_EXTENSION_ID != ''
+        if: steps.check-secrets.outputs.has_chrome_secrets == 'true'
         env:
           EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}

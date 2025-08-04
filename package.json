@@ -34,7 +34,9 @@
 		"module-manager": "pnpm -F module-manager start",
 		"postinstall": "pnpm copy-env",
 		"publish:chrome": "tsx scripts/publish-chrome.ts",
-		"release": "semantic-release"
+		"release": "semantic-release",
+		"release:test": "tsx scripts/test-release.ts",
+		"release:init": "bash scripts/init-release.sh"
 	},
 	"dependencies": {
 		"react": "^19.1.0",
