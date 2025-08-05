@@ -23,6 +23,31 @@ jobs:
       - run: cp .example.env .env
       - run: pnpm build
       - run: pnpm zip
+      
+      # 获取版本号和构建时间
+      - name: Get build info
+        id: info
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          DATE=$(date +'%Y%m%d-%H%M%S')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+          echo "tag=v${VERSION}-${DATE}" >> $GITHUB_OUTPUT
+          
+      # 创建 Release
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.info.outputs.tag }}
+          name: Release ${{ steps.info.outputs.version }} (${{ steps.info.outputs.date }})
+          files: |
+            dist-zip/*.zip
+          body: |
+            Chrome extension build
+            Version: ${{ steps.info.outputs.version }}
+            Build time: ${{ steps.info.outputs.date }}
+            
+      # 同时上传到 Artifacts 作为备份
       - uses: actions/upload-artifact@v4
         with:
           name: chrome-extension-dist
