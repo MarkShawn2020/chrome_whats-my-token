@@ -13,6 +13,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: pnpm
       - run: pnpm install --frozen-lockfile --prefer-offline
+      - run: cp .env.example .env
       - run: pnpm build
       - uses: actions/upload-artifact@v4
         with:

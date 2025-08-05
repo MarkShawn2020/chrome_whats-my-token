@@ -31,6 +31,9 @@ jobs:
           HUSKY: 0
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Setup environment file
+        run: cp .env.example .env
+
       - name: Build dependencies for type checking
         run: pnpm turbo ready
 
