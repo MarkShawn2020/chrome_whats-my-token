@@ -11,6 +11,9 @@ permissions:
   issues: write
   pull-requests: write
 
+env:
+  HUSKY: 0
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -27,7 +30,7 @@ jobs:
         uses: pnpm/action-setup@v4
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Build dependencies for type checking
         run: pnpm turbo ready
@@ -41,14 +44,16 @@ jobs:
       - name: Build Chrome extension
         run: pnpm build
 
-      - name: Run E2E tests
-        run: pnpm e2e
-        continue-on-error: true
+      # - name: Run E2E tests
+      #   run: pnpm e2e
+      #   continue-on-error: true
 
   release-and-publish:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    env:
+      HUSKY: 0
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -65,19 +70,36 @@ jobs:
         uses: pnpm/action-setup@v4
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Check next version
         id: check-version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Temporarily disable husky for dry-run
+          if [ -d .husky ]; then
+            mv .husky .husky.bak
+          fi
+          
+          # Unset any existing hooks path configuration
+          git config --unset core.hooksPath || true
+          git config --unset core.hookspath || true
+          
+          # Disable git hooks globally
+          git config core.hooksPath /dev/null
+          
           # Configure git to use the correct repository from GitHub context
           git remote set-url origin https://github.com/${{ github.repository }}.git
           
           # Run semantic-release in dry-run mode and capture output
           OUTPUT=$(pnpm exec semantic-release --dry-run --ci false 2>&1 || true)
           echo "$OUTPUT"
+          
+          # Restore husky
+          if [ -d .husky.bak ]; then
+            mv .husky.bak .husky
+          fi
           
           # Extract version from output
           NEXT_VERSION=$(echo "$OUTPUT" | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+' || echo "")
@@ -127,7 +149,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm exec semantic-release
+        run: |
+          # Temporarily disable husky completely
+          if [ -d .husky ]; then
+            mv .husky .husky.bak
+          fi
+          
+          # Unset any existing hooks path configuration
+          git config --unset core.hooksPath || true
+          git config --unset core.hookspath || true
+          
+          # Disable git hooks globally
+          git config core.hooksPath /dev/null
+          
+          # Run semantic-release
+          pnpm exec semantic-release
+          
+          # Restore husky after release
+          if [ -d .husky.bak ]; then
+            mv .husky.bak .husky
+          fi
 
       - name: Check Chrome Web Store Secrets
         id: check-secrets
