@@ -8,187 +8,24 @@ on:
 
 permissions:
   contents: write
-  issues: write
-  pull-requests: write
-
-env:
-  HUSKY: 0
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
-
-      - name: Build dependencies for type checking
-        run: pnpm turbo ready
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Type check
-        run: pnpm type-check
-
-      - name: Build Chrome extension
-        run: pnpm build
-
-      # - name: Run E2E tests
-      #   run: pnpm e2e
-      #   continue-on-error: true
-
-  release-and-publish:
-    needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    env:
-      HUSKY: 0
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+          node-version-file: '.nvmrc'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --prefer-offline
+      - run: cp .example.env .env
+      - run: pnpm build
+      - run: pnpm zip
+      - uses: actions/upload-artifact@v4
         with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
-        
-      - name: Check next version
-        id: check-version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Temporarily disable husky for dry-run
-          if [ -d .husky ]; then
-            mv .husky .husky.bak
-          fi
-          
-          # Unset any existing hooks path configuration
-          git config --unset core.hooksPath || true
-          git config --unset core.hookspath || true
-          
-          # Disable git hooks globally
-          git config core.hooksPath /dev/null
-          
-          # Configure git to use the correct repository from GitHub context
-          git remote set-url origin https://github.com/${{ github.repository }}.git
-          
-          # Run semantic-release in dry-run mode and capture output
-          OUTPUT=$(pnpm exec semantic-release --dry-run --ci false 2>&1 || true)
-          echo "$OUTPUT"
-          
-          # Restore husky
-          if [ -d .husky.bak ]; then
-            mv .husky.bak .husky
-          fi
-          
-          # Extract version from output
-          NEXT_VERSION=$(echo "$OUTPUT" | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+' || echo "")
-          
-          if [ -z "$NEXT_VERSION" ]; then
-            echo "::notice::No release needed based on commits"
-            echo "should_release=false" >> $GITHUB_OUTPUT
-          else
-            echo "::notice::Next version will be: $NEXT_VERSION"
-            echo "should_release=true" >> $GITHUB_OUTPUT
-            echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Build all artifacts
-        if: steps.check-version.outputs.should_release == 'true'
-        run: |
-          VERSION=${{ steps.check-version.outputs.next_version }}
-          echo "Building artifacts for version: $VERSION"
-          
-          # Build the extension
-          pnpm build
-          
-          # Create extension zip
-          pnpm zip
-          
-          # Create versioned artifacts in dist-zip
-          mkdir -p dist-zip
-          
-          # Rename the extension zip
-          EXTENSION_ZIP=$(find dist-zip -name "extension-*.zip" -type f | head -1)
-          if [ -n "$EXTENSION_ZIP" ]; then
-            mv "$EXTENSION_ZIP" "dist-zip/whatsmytoken-v${VERSION}-chrome.zip"
-          else
-            # If no extension zip found, create one from dist
-            cd dist && zip -r "../dist-zip/whatsmytoken-v${VERSION}-chrome.zip" . && cd ..
-          fi
-          
-          # Create dist archives
-          tar -czf "dist-zip/whatsmytoken-v${VERSION}-dist.tar.gz" -C . dist
-          zip -r "dist-zip/whatsmytoken-v${VERSION}-dist.zip" dist
-          
-          echo "Created release artifacts:"
-          ls -la dist-zip/
-
-      - name: Release
-        if: steps.check-version.outputs.should_release == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          # Temporarily disable husky completely
-          if [ -d .husky ]; then
-            mv .husky .husky.bak
-          fi
-          
-          # Unset any existing hooks path configuration
-          git config --unset core.hooksPath || true
-          git config --unset core.hookspath || true
-          
-          # Disable git hooks globally
-          git config core.hooksPath /dev/null
-          
-          # Run semantic-release
-          pnpm exec semantic-release
-          
-          # Restore husky after release
-          if [ -d .husky.bak ]; then
-            mv .husky.bak .husky
-          fi
-
-      - name: Check Chrome Web Store Secrets
-        id: check-secrets
-        run: |
-          if [[ -n "${{ secrets.CHROME_EXTENSION_ID }}" ]]; then
-            echo "has_chrome_secrets=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_chrome_secrets=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Chrome Web Store secrets not configured. Skipping Chrome publishing."
-          fi
-
-      - name: Publish to Chrome Web Store
-        if: steps.check-secrets.outputs.has_chrome_secrets == 'true' && steps.check-version.outputs.should_release == 'true'
-        env:
-          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-        run: |
-          VERSION=${{ steps.check-version.outputs.next_version }}
-          npx chrome-webstore-upload-cli upload \
-            --source "dist-zip/whatsmytoken-v${VERSION}-chrome.zip" \
-            --extension-id $EXTENSION_ID
+          name: chrome-extension-dist
+          path: |
+            dist/
+            dist-zip/
