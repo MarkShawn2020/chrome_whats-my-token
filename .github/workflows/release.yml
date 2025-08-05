@@ -32,9 +32,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Setup environment file
-        run: cp .env.example .env
-
       - name: Build dependencies for type checking
         run: pnpm turbo ready
 
@@ -74,10 +71,7 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
-
-      - name: Setup environment file
-        run: cp .env.example .env
-
+        
       - name: Check next version
         id: check-version
         env:
