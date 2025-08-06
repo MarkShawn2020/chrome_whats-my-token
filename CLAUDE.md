@@ -138,3 +138,4 @@ The project uses Turborepo and pnpm workspaces for managing multiple packages:
 ### Development Guidelines
 
 - **Local Development Note**: 不要使用build，本地在dev
+- **禁止运行dev、build等，我在独立运行dev**
